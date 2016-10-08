@@ -51,7 +51,11 @@ def send_mail(credentials, email, passkey):
     message += "\n\n~Thor"
     subject = 'Thor is finished'
     smtp_server='smtp.gmail.com:587'
-    Thor_Mail.sending(email,subject,message,passkey,smtp_server)
+    try:
+        Thor_Mail.sending(email,subject,message,passkey,smtp_server)
+    except:
+        print('[!] Could not send the E-Mail, but Thor is finished')
+        print('[+]'+message)
 
 def main():
     userf = []
