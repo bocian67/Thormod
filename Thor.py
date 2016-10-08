@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #======================================================
-#THIS SCRIPT IS WRITTEN BY BOCIAN67 AND IS JUST FOR
+#THIS SCRIPT IS WRITTEN BY BOCIAN67 AND IS FOR
 #EDUCATIONAL PURPOSES ONLY!     ~Thor_will_win~
 #======================================================
 from requests import session
